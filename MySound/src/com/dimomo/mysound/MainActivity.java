@@ -1,65 +1,98 @@
 package com.dimomo.mysound;
 
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
+import java.io.IOException;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
+import android.view.View.OnClickListener;
+import android.widget.TextView;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
+	TextView t;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		t = (TextView) findViewById(R.id.text);
+		t.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				new GetMyPlaylistAsyncTask().execute("https://api.soundcloud.com/me/playlists.json?oauth_token=1-121740-68965868-12aa62d68fcaaf");
+			}
+		});
+		
+	}
+	private class GetMyPlaylistAsyncTask extends AsyncTask<String, Void, JSONArray> {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+		@Override
+		protected void onPreExecute() {
+			Log.d("AsyncTask", "onPreExecute : " + this.getClass().getSimpleName());
+//			pd = ProgressDialog.show(mContext, "", "Loading..", true);
+		}
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
-        }
-    }
+		@Override
+		protected JSONArray doInBackground(String... urls) {
+			if (urls.length > 0) {
+				String url = urls[0];
+				Log.i("BBB", url);
+				HttpClient httpClient = new DefaultHttpClient();
+				HttpGet httpget = new HttpGet(url);
+				try {
+					HttpResponse response = httpClient.execute(httpget);
+					if (response != null) {
+						// If status is OK 200
+						if (response.getStatusLine().getStatusCode() == 200) {
+							String result = EntityUtils.toString(response.getEntity());
+							// Convert the string result to a JSON Object
+							Log.i("BBB", result);
+							return new JSONArray(result);
+						}
+					}
+				} catch (Exception e) {
+					Log.e("Authorize", "Error Http response " + e.getLocalizedMessage());
+				}
+			}
+			return null;
+		}
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-    }
+		@Override
+		protected void onPostExecute(JSONArray data) {
+			Log.d("AsyncTask", "onPostExecute : " + this.getClass().getSimpleName());
+//			if (pd != null && pd.isShowing()) {
+//				pd.dismiss();
+//			}
+			if (data != null) {
+				Log.e("data", "" + data);
+			}
+			t.setText(data.toString());
+		}
+	};
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 
 }
