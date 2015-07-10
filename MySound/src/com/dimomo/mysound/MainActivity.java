@@ -25,11 +25,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements OnClickListener, OnTouchListener, OnCompletionListener, OnBufferingUpdateListener{
 	TextView t, t1;
+	ImageView img;
 	String track = "https://api.soundcloud.com/tracks/636890/stream?oauth_token=1-121740-68965868-12aa62d68fcaaf";
 	private MediaPlayer mediaPlayer;
 	private int mediaFileLengthInMilliseconds;
@@ -42,14 +44,16 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 		setContentView(R.layout.activity_main);
 		seekBarProgress = (SeekBar)findViewById(R.id.seekBar1);	
 		seekBarProgress.setMax(99); // It means 100% .0-99
+		seekBarProgress.setBackgroundResource(R.drawable.wave);
 		seekBarProgress.setOnTouchListener(this);
 		t = (TextView) findViewById(R.id.text);
 		t1 = (TextView) findViewById(R.id.textView1);
+		img = (ImageView) findViewById(R.id.imageView1);
 		t.setText("play");
 		mediaPlayer = new MediaPlayer();
 		mediaPlayer.setOnBufferingUpdateListener(this);
 		mediaPlayer.setOnCompletionListener(this);
-		t.setOnClickListener(new OnClickListener() {
+		img.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -66,9 +70,11 @@ public class MainActivity extends Activity implements OnClickListener, OnTouchLi
 				if(!mediaPlayer.isPlaying()){
 					mediaPlayer.start();
 					t.setText("playing"+ mediaFileLengthInMilliseconds);
+					img.setImageResource(R.drawable.toggle_e);
 				}else {
 					mediaPlayer.pause();
 					t.setText("pause" +mediaFileLengthInMilliseconds);
+					img.setImageResource(R.drawable.toggle_w);
 				}
 				primarySeekBarProgressUpdater();
 			}
